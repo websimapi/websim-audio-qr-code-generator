@@ -145,19 +145,26 @@ function generateQRCode(data) {
     qrcodeContainer.innerHTML = '';
     const fullUrl = `${QR_URL_PREFIX}${data}`;
 
-    qrcodeInstance = new QRCode(qrcodeContainer, {
-        text: fullUrl,
-        width: 256,
-        height: 256,
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.L
-    });
+    // The library's `makeCode` method is used to update an existing QRCode instance
+    // or to generate the first one. Let's ensure an instance exists first.
+    if (!qrcodeInstance) {
+        qrcodeInstance = new QRCode(qrcodeContainer, {
+            text: fullUrl,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.L
+        });
+    } else {
+        qrcodeInstance.makeCode(fullUrl);
+    }
 
     setTimeout(() => {
-        const canvas = qrcodeContainer.querySelector('canvas');
-        if (canvas) {
-            downloadLink.href = canvas.toDataURL('image/png');
+        // The library generates an `img` tag inside the container.
+        const img = qrcodeContainer.querySelector('img');
+        if (img) {
+            downloadLink.href = img.src;
             downloadLink.classList.remove('hidden');
         }
     }, 100); // Wait for QR code to render
@@ -228,4 +235,3 @@ function showMessage(msg, type = 'info') {
     messageArea.textContent = msg;
     messageArea.className = `message-area ${type}`;
 }
-
