@@ -1,0 +1,227 @@
+:root {
+    --primary-color: #007bff;
+    --primary-color-dark: #0056b3;
+    --background-color: #f0f2f5;
+    --card-background: #ffffff;
+    --text-color: #333;
+    --border-color: #dee2e6;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --white: #fff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+#app {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    color: var(--primary-color);
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.view {
+    display: none;
+}
+
+.view.active {
+    display: block;
+}
+
+.card {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.info {
+    text-align: center;
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+
+#recorder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+#record-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid var(--border-color);
+    background-color: var(--white);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+#record-button.recording {
+    border-color: var(--error-color);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
+#record-button img {
+    width: 40px;
+    height: 40px;
+}
+
+.timer-container {
+    width: 100%;
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#timer-progress {
+    width: 0;
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width 0.1s linear;
+}
+
+#timer-display {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.message-area {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 4px;
+    text-align: center;
+    display: none;
+}
+
+.message-area.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    display: block;
+}
+
+.message-area.success {
+    background-color: #d4edda;
+    color: #155724;
+    display: block;
+}
+
+#qrcode-container {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+#qrcode {
+    padding: 10px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    display: inline-block;
+}
+
+#qrcode img {
+    display: block;
+}
+
+.button {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.2s ease;
+}
+
+.button:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.hidden {
+    display: none !important;
+}
+
+#reader {
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden; /* This will respect the border-radius for the video element */
+}
+
+#reader video {
+    width: 100% !important; /* Override library styles */
+    height: auto !important;
+}
+
+
+#audio-player {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+#audio-player audio {
+    width: 100%;
+}
+
