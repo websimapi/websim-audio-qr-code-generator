@@ -81,15 +81,16 @@ class AudioQRApp {
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
-            // Use compressed audio settings to reduce file size
+            // Use more aggressive compression settings
             const options = {
                 mimeType: 'audio/webm;codecs=opus',
-                audioBitsPerSecond: 16000 // Low bitrate for compression
+                audioBitsPerSecond: 8000 // Very low bitrate for maximum compression
             };
             
             // Fallback if the preferred format isn't supported
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 options.mimeType = 'audio/webm';
+                options.audioBitsPerSecond = 8000;
             }
             
             this.mediaRecorder = new MediaRecorder(this.stream, options);
@@ -115,6 +116,7 @@ class AudioQRApp {
             this.timerInterval = setInterval(() => this.updateTimer(), 100);
             
         } catch (error) {
+            console.error('Recording error:', error);
             this.showMessage('Microphone access denied. Please allow access and try again.', 'error');
         }
     }
@@ -155,8 +157,10 @@ class AudioQRApp {
     async processAudio() {
         const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
         
+        console.log('Audio blob size:', audioBlob.size, 'bytes');
+        
         // Increased size limit due to base64 encoding overhead
-        if (audioBlob.size > 4000) {
+        if (audioBlob.size > 3000) { // Reduced from 4000
             this.showMessage('Recording too long! Please try a shorter recording.', 'error');
             return;
         }
@@ -165,35 +169,58 @@ class AudioQRApp {
         
         try {
             const base64 = await this.blobToBase64(audioBlob);
+            console.log('Base64 length:', base64.length);
+            
+            // Check if base64 data is too long for QR code
+            if (base64.length > 2000) {
+                this.showMessage('Audio data too large for QR code. Try a shorter recording.', 'error');
+                return;
+            }
+            
             const qrData = `https://websim.com/@api/qrtoaudio?data=${base64}`;
+            console.log('QR data length:', qrData.length);
             
             // Generate QR code using qrcode library
-            QRCode.toCanvas(this.qrCanvas, qrData, {
-                width: 256,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                }
-            }, (error) => {
-                if (error) {
-                    this.showMessage('Failed to generate QR code', 'error');
-                } else {
-                    this.showMessage('QR code generated successfully!', 'success');
-                    this.qrSection.classList.add('show');
-                }
+            await new Promise((resolve, reject) => {
+                QRCode.toCanvas(this.qrCanvas, qrData, {
+                    width: 256,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    },
+                    errorCorrectionLevel: 'L' // Low error correction for more data capacity
+                }, (error) => {
+                    if (error) {
+                        console.error('QR generation error:', error);
+                        reject(error);
+                    } else {
+                        resolve();
+                    }
+                });
             });
             
+            this.showMessage('QR code generated successfully!', 'success');
+            this.qrSection.classList.add('show');
+            
         } catch (error) {
-            this.showMessage('Failed to process audio', 'error');
+            console.error('Audio processing error:', error);
+            this.showMessage(`Failed to process audio: ${error.message || 'Unknown error'}`, 'error');
         }
     }
     
     blobToBase64(blob) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
+            reader.onloadend = () => {
+                try {
+                    const result = reader.result.split(',')[1];
+                    resolve(result);
+                } catch (error) {
+                    reject(new Error('Failed to convert audio to base64'));
+                }
+            };
+            reader.onerror = () => reject(new Error('FileReader error'));
             reader.readAsDataURL(blob);
         });
     }
