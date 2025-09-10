@@ -124,6 +124,9 @@ async function processAudio() {
     if (audioBlob.size > MAX_BLOB_SIZE_BYTES) {
         const excessBytes = audioBlob.size - MAX_BLOB_SIZE_BYTES;
         showMessage(`Recording is too long! It's ${excessBytes} bytes over the limit. Please try a shorter recording.`, 'error');
+        // Clear the QR code area if a previous one exists
+        qrcodeContainer.innerHTML = '';
+        downloadLink.classList.add('hidden');
         return;
     }
 
@@ -142,34 +145,36 @@ function blobToBase64(blob) {
 }
 
 function generateQRCode(data) {
-    qrcodeContainer.innerHTML = '';
+    qrcodeContainer.innerHTML = ''; // Always clear the container first
     const fullUrl = `${QR_URL_PREFIX}${data}`;
 
-    // The library's `makeCode` method is used to update an existing QRCode instance
-    // or to generate the first one. Let's ensure an instance exists first.
-    if (!qrcodeInstance) {
-        qrcodeInstance = new QRCode(qrcodeContainer, {
-            text: fullUrl,
-            width: 256,
-            height: 256,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.L
-        });
-    } else {
-        qrcodeInstance.makeCode(fullUrl);
-    }
+    // Create a new QRCode instance every time.
+    // This is simpler and avoids state issues with the library instance.
+    new QRCode(qrcodeContainer, {
+        text: fullUrl,
+        width: 256,
+        height: 256,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.L
+    });
 
+    // A short delay is needed for the library to generate the QR code image element.
     setTimeout(() => {
-        // The library generates an `img` tag inside the container.
         const img = qrcodeContainer.querySelector('img');
         if (img) {
             downloadLink.href = img.src;
             downloadLink.classList.remove('hidden');
+        } else {
+            // Fallback for if the library uses a canvas
+            const canvas = qrcodeContainer.querySelector('canvas');
+            if (canvas) {
+                downloadLink.href = canvas.toDataURL();
+                downloadLink.classList.remove('hidden');
+            }
         }
-    }, 100); // Wait for QR code to render
+    }, 200); // Increased delay slightly for safety
 }
-
 
 // --- QR Code Scanning and Playback ---
 
