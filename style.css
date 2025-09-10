@@ -167,6 +167,34 @@ header p {
     display: block;
 }
 
+.log-container {
+    margin-top: 20px;
+    background: #f1f3f5;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.log-container h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+#logOutput {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    height: 150px;
+    overflow-y: scroll;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: #212529;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
 #qrCanvas {
     border: 1px solid #e9ecef;
     border-radius: 8px;

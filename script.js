@@ -15,6 +15,7 @@ class AudioQRApp {
         
         this.initElements();
         this.initEventListeners();
+        this.log('App initialized.');
     }
     
     initElements() {
@@ -31,6 +32,7 @@ class AudioQRApp {
         this.qrSection = document.getElementById('qrSection');
         this.qrCanvas = document.getElementById('qrCanvas');
         this.downloadBtn = document.getElementById('downloadBtn');
+        this.logOutput = document.getElementById('logOutput');
         
         // Scan elements
         this.video = document.getElementById('video');
@@ -53,7 +55,23 @@ class AudioQRApp {
         this.downloadBtn.addEventListener('click', () => this.downloadQR());
     }
     
+    log(message) {
+        console.log(message);
+        const time = new Date().toLocaleTimeString();
+        if (this.logOutput) {
+            const currentLogs = this.logOutput.textContent;
+            const newLog = `[${time}] ${message}\n`;
+            this.logOutput.textContent = newLog + currentLogs;
+
+            const lines = this.logOutput.textContent.split('\n');
+            if (lines.length > 50) {
+                this.logOutput.textContent = lines.slice(0, 50).join('\n');
+            }
+        }
+    }
+    
     switchTab(tabName) {
+        this.log(`Switching to tab: ${tabName}`);
         // Update tab buttons
         this.tabBtns.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
@@ -74,15 +92,20 @@ class AudioQRApp {
     
     async toggleRecording() {
         if (this.isRecording) {
+            this.log('Stop recording button clicked.');
             this.stopRecording();
         } else {
+            this.log('Start recording button clicked.');
             await this.startRecording();
         }
     }
     
     async startRecording() {
+        this.log('Attempting to start recording...');
         try {
+            this.log('Requesting microphone access.');
             this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.log('Microphone access granted.');
             
             // Use more aggressive compression settings
             const options = {
@@ -92,8 +115,10 @@ class AudioQRApp {
             
             // Fallback if the preferred format isn't supported
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                this.log(`MimeType ${options.mimeType} not supported. Falling back to default.`);
                 options.mimeType = 'audio/webm';
             }
+            this.log(`Using MimeType: ${options.mimeType}`);
             
             this.mediaRecorder = new MediaRecorder(this.stream, options);
             
@@ -107,6 +132,7 @@ class AudioQRApp {
             this.mediaRecorder.start();
             this.isRecording = true;
             this.startTime = Date.now();
+            this.log('Recording started.');
             
             // Update UI
             this.recordBtn.classList.add('recording');
@@ -119,6 +145,7 @@ class AudioQRApp {
             
         } catch (error) {
             console.error('Recording error:', error);
+            this.log(`ERROR: Could not start recording. ${error.message}`);
             this.showMessage('Microphone access denied. Please allow access and try again.', 'error');
         }
     }
@@ -127,6 +154,7 @@ class AudioQRApp {
         if (this.mediaRecorder && this.isRecording) {
             this.mediaRecorder.stop();
             this.isRecording = false;
+            this.log('Recording stopped.');
             
             // Stop all tracks
             if (this.stream) {
@@ -157,30 +185,35 @@ class AudioQRApp {
     }
     
     async processAudio() {
+        this.log('Processing recorded audio...');
         const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
         
-        console.log('Audio blob size:', audioBlob.size, 'bytes');
+        this.log(`Audio blob size: ${audioBlob.size} bytes`);
         
         // Increased size limit due to base64 encoding overhead
-        if (audioBlob.size > 3000) { // Reduced from 4000
+        if (audioBlob.size > 2200) { 
+            this.log(`ERROR: Audio blob size (${audioBlob.size} bytes) is too large. Limit is 2200 bytes.`);
             this.showMessage('Recording too long! Please try a shorter recording.', 'error');
             return;
         }
         
         this.showMessage('Generating QR code...', 'success');
+        this.log('Converting audio blob to Base64...');
         
         try {
             const base64 = await this.blobToBase64(audioBlob);
-            console.log('Base64 length:', base64.length);
+            this.log(`Base64 conversion successful. Length: ${base64.length}`);
             
             // Check if base64 data is too long for QR code
-            if (base64.length > 2000) {
+            if (base64.length > 2953) { // Absolute max for QR code with low error correction
+                this.log(`ERROR: Base64 data length (${base64.length}) is too large for a QR code.`);
                 this.showMessage('Audio data too large for QR code. Try a shorter recording.', 'error');
                 return;
             }
             
             const qrData = `https://websim.com/@api/qrtoaudio?data=${base64}`;
-            console.log('QR data length:', qrData.length);
+            this.log(`Total QR data length: ${qrData.length}`);
+            this.log('Generating QR code...');
             
             // Generate QR code using qrcode library - check if library exists
             if (typeof window.QRCode === 'undefined') {
@@ -206,11 +239,13 @@ class AudioQRApp {
                 });
             });
             
+            this.log('QR code generated successfully.');
             this.showMessage('QR code generated successfully!', 'success');
             this.qrSection.classList.add('show');
             
         } catch (error) {
             console.error('Audio processing error:', error);
+            this.log(`ERROR: Failed to process audio or generate QR code. ${error.message || 'Unknown error'}`);
             this.showMessage(`Failed to process audio: ${error.message || 'Unknown error'}`, 'error');
         }
     }
@@ -232,6 +267,7 @@ class AudioQRApp {
     }
     
     downloadQR() {
+        this.log('Download QR button clicked.');
         const link = document.createElement('a');
         link.download = 'audio-qr-code.png';
         link.href = this.qrCanvas.toDataURL('image/png');
@@ -250,6 +286,7 @@ class AudioQRApp {
     // --- Scanning Logic ---
 
     async startCamera() {
+        this.log('Attempting to start camera for scanning.');
         try {
             if (!this.videoStream) {
                 this.videoStream = await navigator.mediaDevices.getUserMedia({ 
@@ -257,17 +294,20 @@ class AudioQRApp {
                 });
                 this.video.srcObject = this.videoStream;
                 this.video.onloadedmetadata = () => {
+                    this.log('Camera started, beginning scan.');
                     this.startScanning();
                 };
             }
         } catch (error) {
             console.error('Camera error:', error);
+            this.log(`ERROR: Could not access camera. ${error.message}`);
             this.scanMessage.textContent = 'Could not access camera. Please grant permission.';
             this.scanMessage.className = 'message error';
         }
     }
     
     stopCamera() {
+        this.log('Stopping camera.');
         this.stopScanning();
         if (this.videoStream) {
             this.videoStream.getTracks().forEach(track => track.stop());
@@ -284,6 +324,7 @@ class AudioQRApp {
     
     stopScanning() {
         if (this.scanInterval) {
+            this.log('Stopping QR code scan loop.');
             clearInterval(this.scanInterval);
             this.scanInterval = null;
         }
@@ -304,16 +345,19 @@ class AudioQRApp {
             const code = jsQR(imageData.data, imageData.width, imageData.height);
         
             if (code && code.data.includes('websim.com/@api/qrtoaudio?data=')) {
+                this.log(`QR code detected with valid URL. Data length: ${code.data.length}`);
                 this.stopCamera();
                 this.playAudioFromQR(code.data);
             }
         } catch (e) {
             // This can happen if the canvas is tainted, though unlikely here.
             console.error("Error scanning QR code:", e);
+            this.log(`ERROR scanning QR code: ${e.message}`);
         }
     }
     
     async playAudioFromQR(qrData) {
+        this.log('Processing audio from scanned QR code.');
         try {
             const base64Data = qrData.split('data=')[1];
             const audioBlob = this.base64ToBlob(base64Data);
@@ -325,7 +369,9 @@ class AudioQRApp {
             this.scanMessage.className = 'message success';
             
             this.audioPlayer.play();
+            this.log('Playing audio from QR code.');
         } catch (error) {
+            this.log(`ERROR playing audio from QR code: ${error.message}`);
             this.scanMessage.textContent = 'Failed to play audio from QR code';
             this.scanMessage.className = 'message error';
         }
