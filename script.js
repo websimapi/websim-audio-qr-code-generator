@@ -180,9 +180,13 @@ class AudioQRApp {
             const qrData = `https://websim.com/@api/qrtoaudio?data=${base64}`;
             console.log('QR data length:', qrData.length);
             
-            // Generate QR code using qrcode library
+            // Generate QR code using qrcode library - check if library exists
+            if (typeof window.QRCode === 'undefined') {
+                throw new Error('QR Code library not loaded');
+            }
+            
             await new Promise((resolve, reject) => {
-                QRCode.toCanvas(this.qrCanvas, qrData, {
+                window.QRCode.toCanvas(this.qrCanvas, qrData, {
                     width: 256,
                     margin: 2,
                     color: {
