@@ -80,7 +80,19 @@ class AudioQRApp {
     async startRecording() {
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.mediaRecorder = new MediaRecorder(this.stream);
+            
+            // Use compressed audio settings to reduce file size
+            const options = {
+                mimeType: 'audio/webm;codecs=opus',
+                audioBitsPerSecond: 16000 // Low bitrate for compression
+            };
+            
+            // Fallback if the preferred format isn't supported
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'audio/webm';
+            }
+            
+            this.mediaRecorder = new MediaRecorder(this.stream, options);
             
             this.audioChunks = [];
             this.mediaRecorder.ondataavailable = (event) => {
@@ -143,8 +155,8 @@ class AudioQRApp {
     async processAudio() {
         const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
         
-        // Check size (rough limit for QR codes)
-        if (audioBlob.size > 2000) {
+        // Increased size limit due to base64 encoding overhead
+        if (audioBlob.size > 4000) {
             this.showMessage('Recording too long! Please try a shorter recording.', 'error');
             return;
         }
