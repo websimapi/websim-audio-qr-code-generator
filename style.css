@@ -1,228 +1,239 @@
-:root {
-    --primary-color: #007bff;
-    --primary-color-dark: #0056b3;
-    --background-color: #f0f2f5;
-    --card-background: #ffffff;
-    --text-color: #333;
-    --border-color: #dee2e6;
-    --error-color: #dc3545;
-    --success-color: #28a745;
-    --white: #fff;
-}
-
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
+    font-family: 'Noto Sans', sans-serif;
+    background: #f8f9fa;
+    color: #333;
     line-height: 1.6;
 }
 
-#app {
-    max-width: 600px;
+.container {
+    max-width: 500px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 20px;
 }
 
 header {
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 30px;
 }
 
-h1 {
-    color: var(--primary-color);
+header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
 }
 
-nav {
+header p {
+    color: #666;
+    font-weight: 300;
+}
+
+.tabs {
     display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
+    background: white;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.tab-button {
+.tab-btn {
     flex: 1;
-    padding: 0.75rem;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
+    padding: 12px;
     border: none;
-    background-color: transparent;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s ease;
+    background: transparent;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.tab-button.active {
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
+.tab-btn.active {
+    background: #007bff;
+    color: white;
 }
 
-.view {
+.tab-content {
     display: none;
 }
 
-.view.active {
+.tab-content.active {
     display: block;
 }
 
 .card {
-    background-color: var(--card-background);
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-h2 {
-    margin-bottom: 0.5rem;
+.record-section {
     text-align: center;
+    margin-bottom: 20px;
 }
 
-.info {
-    text-align: center;
-    color: #6c757d;
-    margin-bottom: 1.5rem;
-}
-
-#recorder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-
-#record-button {
-    width: 80px;
-    height: 80px;
+.record-btn {
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
-    border: 4px solid var(--border-color);
-    background-color: var(--white);
+    border: 3px solid #e9ecef;
+    background: white;
     cursor: pointer;
     display: flex;
-    justify-content: center;
     align-items: center;
-    transition: all 0.2s ease;
+    justify-content: center;
+    margin: 0 auto 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-#record-button.recording {
-    border-color: var(--error-color);
+.record-btn:hover {
+    transform: scale(1.05);
+}
+
+.record-btn.recording {
+    border-color: #dc3545;
     animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+    70% { box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); }
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
 }
 
-#record-button img {
-    width: 40px;
-    height: 40px;
+.record-btn img {
+    width: 50px;
+    height: 50px;
 }
 
-.timer-container {
+.timer {
+    text-align: center;
+}
+
+.progress-bar {
     width: 100%;
-    height: 8px;
-    background-color: #e9ecef;
-    border-radius: 4px;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
     overflow: hidden;
+    margin-bottom: 10px;
 }
 
-#timer-progress {
-    width: 0;
+.progress {
     height: 100%;
-    background-color: var(--primary-color);
+    background: #007bff;
+    width: 0%;
     transition: width 0.1s linear;
 }
 
-#timer-display {
+#timeDisplay {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: #666;
 }
 
-.message-area {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    border-radius: 4px;
+.message {
     text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
     display: none;
 }
 
-.message-area.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    display: block;
-}
-
-.message-area.success {
-    background-color: #d4edda;
+.message.success {
+    background: #d4edda;
     color: #155724;
     display: block;
 }
 
-#qrcode-container {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-
-#qrcode {
-    padding: 10px;
-    background: var(--white);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    display: flex; /* Use flex to center the QR code image */
-    justify-content: center;
-    align-items: center;
-}
-
-#qrcode img {
+.message.error {
+    background: #f8d7da;
+    color: #721c24;
     display: block;
 }
 
-.button {
-    display: inline-block;
-    background-color: var(--primary-color);
-    color: var(--white);
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: bold;
+.qr-section {
     text-align: center;
-    transition: background-color 0.2s ease;
+    display: none;
 }
 
-.button:hover {
-    background-color: var(--primary-color-dark);
+.qr-section.show {
+    display: block;
 }
 
-.hidden {
-    display: none !important;
-}
-
-#reader {
-    width: 100%;
-    border: 1px solid var(--border-color);
+#qrCanvas {
+    border: 1px solid #e9ecef;
     border-radius: 8px;
-    overflow: hidden; /* This will respect the border-radius for the video element */
+    margin-bottom: 20px;
 }
 
-#reader video {
-    width: 100% !important; /* Override library styles */
-    height: auto !important;
+.download-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
 }
 
+.download-btn:hover {
+    background: #218838;
+}
 
-#audio-player {
-    margin-top: 1rem;
+.scan-section {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+#video {
+    width: 100%;
+    border-radius: 8px;
+    background: #000;
+}
+
+#scanCanvas {
+    display: none;
+}
+
+.audio-section {
+    display: none;
     text-align: center;
 }
 
-#audio-player audio {
-    width: 100%;
+.audio-section.show {
+    display: block;
 }
+
+#audioPlayer {
+    width: 100%;
+    margin-top: 10px;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    .record-btn {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .record-btn img {
+        width: 40px;
+        height: 40px;
+    }
+}
+

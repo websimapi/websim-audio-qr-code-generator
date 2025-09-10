@@ -3,57 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio QR Code Generator</title>
+    <title>Audio QR Generator</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/david-shimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="app">
+    <div class="container">
         <header>
-            <h1>Audio QR Code</h1>
+            <h1>Audio QR</h1>
+            <p>Record audio and generate QR codes</p>
         </header>
-        <nav>
-            <button id="tab-create" class="tab-button active">Create</button>
-            <button id="tab-scan" class="tab-button">Scan</button>
-        </nav>
-        <main>
-            <div id="create-view" class="view active">
-                <div class="card">
-                    <h2>Record Audio</h2>
-                    <p class="info">Record a short audio clip (max 2 seconds) to embed in a QR code.</p>
-                    <div id="recorder">
-                        <button id="record-button">
-                            <img src="icon-record.png" alt="Record" id="record-icon">
-                        </button>
-                        <div class="timer-container">
-                            <div id="timer-progress"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="record">Record</button>
+            <button class="tab-btn" data-tab="scan">Scan</button>
+        </div>
+
+        <div class="tab-content active" id="record">
+            <div class="card">
+                <div class="record-section">
+                    <button class="record-btn" id="recordBtn">
+                        <img src="icon-record.png" alt="Record" id="recordIcon">
+                    </button>
+                    <div class="timer">
+                        <div class="progress-bar">
+                            <div class="progress" id="progress"></div>
                         </div>
-                        <p id="timer-display">0.0s / 2.0s</p>
-                    </div>
-                    <div id="message-area" class="message-area"></div>
-                    <div id="qrcode-container">
-                        <div id="qrcode"></div>
-                        <a id="download-qr" class="button hidden" download="audio-qr.png">Download QR Code</a>
+                        <span id="timeDisplay">0.0s / 2.0s</span>
                     </div>
                 </div>
-            </div>
-            <div id="scan-view" class="view">
-                <div class="card">
-                    <h2>Scan QR Code</h2>
-                    <p class="info">Point your camera at an Audio QR Code to play the sound.</p>
-                    <div id="reader"></div>
-                    <div id="scan-result" class="message-area"></div>
-                     <div id="audio-player" class="hidden">
-                        <p>Scanned Audio:</p>
-                        <audio controls id="audio-playback"></audio>
-                    </div>
+                
+                <div class="message" id="message"></div>
+                
+                <div class="qr-section" id="qrSection">
+                    <canvas id="qrCanvas"></canvas>
+                    <button class="download-btn" id="downloadBtn">Download QR Code</button>
                 </div>
             </div>
-        </main>
+        </div>
+
+        <div class="tab-content" id="scan">
+            <div class="card">
+                <div class="scan-section">
+                    <video id="video" autoplay muted playsinline></video>
+                    <canvas id="scanCanvas"></canvas>
+                </div>
+                <div class="message" id="scanMessage"></div>
+                <div class="audio-section" id="audioSection">
+                    <audio controls id="audioPlayer"></audio>
+                </div>
+            </div>
+        </div>
     </div>
-    <script type="module" src="script.js"></script>
+
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="script.js"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
-
