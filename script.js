@@ -104,7 +104,9 @@ class AudioQRApp {
         this.log('Attempting to start recording...');
         try {
             this.log('Requesting microphone access.');
-            this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: true 
+            });
             this.log('Microphone access granted.');
             
             // Use more aggressive compression settings
@@ -125,6 +127,7 @@ class AudioQRApp {
             this.audioChunks = [];
             this.mediaRecorder.ondataavailable = (event) => {
                 this.audioChunks.push(event.data);
+                this.log(`Audio data chunk received. Size: ${event.data.size}`);
             };
             
             this.mediaRecorder.onstop = () => this.processAudio();
@@ -186,6 +189,12 @@ class AudioQRApp {
     
     async processAudio() {
         this.log('Processing recorded audio...');
+        if (this.audioChunks.length === 0) {
+            this.log('ERROR: No audio chunks were recorded.');
+            this.showMessage('No audio was recorded. Please check microphone permissions and try again.', 'error');
+            return;
+        }
+
         const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
         
         this.log(`Audio blob size: ${audioBlob.size} bytes`);
@@ -215,28 +224,19 @@ class AudioQRApp {
             this.log(`Total QR data length: ${qrData.length}`);
             this.log('Generating QR code...');
             
-            // Generate QR code using qrcode library - check if library exists
-            if (typeof window.QRCode === 'undefined') {
-                throw new Error('QR Code library not loaded');
+            // Generate QR code using the imported QRCode module
+            if (typeof QRCode.toCanvas !== 'function') {
+                throw new Error('QRCode.toCanvas function not found. Library might be loaded incorrectly.');
             }
-            
-            await new Promise((resolve, reject) => {
-                window.QRCode.toCanvas(this.qrCanvas, qrData, {
-                    width: 256,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    },
-                    errorCorrectionLevel: 'L' // Low error correction for more data capacity
-                }, (error) => {
-                    if (error) {
-                        console.error('QR generation error:', error);
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
+
+            await QRCode.toCanvas(this.qrCanvas, qrData, {
+                width: 256,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                },
+                errorCorrectionLevel: 'L' // Low error correction for more data capacity
             });
             
             this.log('QR code generated successfully.');
