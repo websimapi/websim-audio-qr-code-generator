@@ -1,3 +1,6 @@
+import QRCode from 'qrcode';
+import jsQR from 'jsqr';
+
 class AudioQRApp {
     constructor() {
         this.mediaRecorder = null;
@@ -8,10 +11,10 @@ class AudioQRApp {
         this.maxDuration = 2000; // 2 seconds in ms
         this.stream = null;
         this.scanInterval = null;
+        this.videoStream = null;
         
         this.initElements();
         this.initEventListeners();
-        this.initCamera();
     }
     
     initElements() {
@@ -63,9 +66,9 @@ class AudioQRApp {
         
         // Handle camera for scanning
         if (tabName === 'scan') {
-            this.startScanning();
+            this.startCamera();
         } else {
-            this.stopScanning();
+            this.stopCamera();
         }
     }
     
@@ -84,13 +87,12 @@ class AudioQRApp {
             // Use more aggressive compression settings
             const options = {
                 mimeType: 'audio/webm;codecs=opus',
-                audioBitsPerSecond: 8000 // Very low bitrate for maximum compression
+                audioBitsPerSecond: 6000 // Lower bitrate for smaller files
             };
             
             // Fallback if the preferred format isn't supported
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 options.mimeType = 'audio/webm';
-                options.audioBitsPerSecond = 8000;
             }
             
             this.mediaRecorder = new MediaRecorder(this.stream, options);
@@ -224,7 +226,7 @@ class AudioQRApp {
                     reject(new Error('Failed to convert audio to base64'));
                 }
             };
-            reader.onerror = () => reject(new Error('FileReader error'));
+            reader.onerror = (error) => reject(new Error('FileReader error: ' + error.message));
             reader.readAsDataURL(blob);
         });
     }
@@ -232,7 +234,7 @@ class AudioQRApp {
     downloadQR() {
         const link = document.createElement('a');
         link.download = 'audio-qr-code.png';
-        link.href = this.qrCanvas.toDataURL();
+        link.href = this.qrCanvas.toDataURL('image/png');
         link.click();
     }
     
@@ -244,21 +246,39 @@ class AudioQRApp {
     hideMessage() {
         this.message.className = 'message';
     }
-    
-    async initCamera() {
+
+    // --- Scanning Logic ---
+
+    async startCamera() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } 
-            });
-            this.video.srcObject = stream;
+            if (!this.videoStream) {
+                this.videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                this.video.srcObject = this.videoStream;
+                this.video.onloadedmetadata = () => {
+                    this.startScanning();
+                };
+            }
         } catch (error) {
-            console.log('Camera not available for scanning');
+            console.error('Camera error:', error);
+            this.scanMessage.textContent = 'Could not access camera. Please grant permission.';
+            this.scanMessage.className = 'message error';
+        }
+    }
+    
+    stopCamera() {
+        this.stopScanning();
+        if (this.videoStream) {
+            this.videoStream.getTracks().forEach(track => track.stop());
+            this.videoStream = null;
+            this.video.srcObject = null;
         }
     }
     
     startScanning() {
         if (!this.scanInterval) {
-            this.scanInterval = setInterval(() => this.scanForQR(), 300);
+            this.scanInterval = setInterval(() => this.scanForQR(), 200);
         }
     }
     
@@ -270,22 +290,26 @@ class AudioQRApp {
     }
     
     scanForQR() {
-        if (this.video.videoWidth === 0) return;
+        if (this.video.readyState !== this.video.HAVE_ENOUGH_DATA) return;
         
         const canvas = this.scanCanvas;
         const ctx = canvas.getContext('2d');
         
         canvas.width = this.video.videoWidth;
         canvas.height = this.video.videoHeight;
+        ctx.drawImage(this.video, 0, 0, canvas.width, canvas.height);
         
-        ctx.drawImage(this.video, 0, 0);
+        try {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
         
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        
-        if (code && code.data.includes('websim.com/@api/qrtoaudio?data=')) {
-            this.stopScanning();
-            this.playAudioFromQR(code.data);
+            if (code && code.data.includes('websim.com/@api/qrtoaudio?data=')) {
+                this.stopCamera();
+                this.playAudioFromQR(code.data);
+            }
+        } catch (e) {
+            // This can happen if the canvas is tainted, though unlikely here.
+            console.error("Error scanning QR code:", e);
         }
     }
     

@@ -191,10 +191,14 @@ header p {
 .scan-section {
     position: relative;
     margin-bottom: 20px;
+    background: #eee;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 #video {
     width: 100%;
+    display: block;
     border-radius: 8px;
     background: #000;
 }
@@ -236,4 +240,3 @@ header p {
         height: 40px;
     }
 }
-
